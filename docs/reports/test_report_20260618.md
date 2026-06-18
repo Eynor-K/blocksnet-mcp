@@ -66,24 +66,35 @@ No broken requirements found.
 .\.venv\Scripts\python.exe -c "from blocksnet_mcp.tools_mcp import analyze_urban_question; import json; r=analyze_urban_question('Где разместить новые спортивные площадки?', max_iterations=5); print(json.dumps(r, ensure_ascii=False, indent=2))"
 ```
 
-Фактический run:
+Фактический run (после фикса резолвинга):
 
 | Поле | Значение |
 |---|---|
-| Run ID | `20260618-140741-90e191` |
-| Каталог | `outputs/run_20260618-140741-90e191/` |
+| Run ID | `20260618-182405-08a76e` |
+| Каталог | `outputs/run_20260618-182405-08a76e/` |
 | Вопрос | `Где разместить новые спортивные площадки?` |
-| Confidence | `0.55` |
-| Артефакты | `16` файлов |
-| Кандидатные кварталы | `2, 4, 5, 11, 12, 14, 15, 26, 27, 36` |
+| Confidence | `0.45` |
+| Длительность | `86 с` |
+| Артефакты | `13` файлов |
+| Кандидатный квартал | `409` |
 
-Измеренный эффект из сериализации:
+Цепочка сценария: `propose_zone_development(block_ids=[409], service_set='sports')` →
+`compute_scenario_provision(scenario={'409': {'pitch': 10}})`. То есть `service_set='sports'`
+корректно сфокусировался на `pitch`, и измерен **именно `pitch`** (а не сторонние сервисы):
 
-| Service | strong before | strong after | missing before | missing after |
+| Service | strong before→after | full before→after | partial before→after | missing before→after |
 |---|---:|---:|---:|---:|
-| `convenience` | `0.359` | `0.380` | `790` | `783` |
-| `kindergarten` | `0.938` | `0.938` | `669` | `668` |
-| `school` | `0.978` | `0.978` | `627` | `627` |
+| `pitch` | `0.732 → 0.732` | `97 → 97` | `21 → 21` | `785 → 785` |
+
+> Эффект плоский: добавление 10 ед. ёмкости в один квартал (409) не сдвинуло общегородской агрегат.
+> Это содержательный результат (точечное вмешательство мало меняет город), а не ошибка — **ключевое,
+> что измеряется корректный целевой сервис `pitch`**. Для заметного эффекта нужен сценарий по нескольким
+> кварталам / большей ёмкости.
+
+**До фикса (демонстрация бага), run `20260618-140741-90e191`:** на тот же вопрос измерялись
+посторонние `convenience` (0.359→0.380), `kindergarten`, `school`, а `pitch` выпадал — `service_set='sports'`
+молча уходил в пресет `basic`. См. раздел
+[«Маршрутизация сервисов»](#маршрутизация-сервисов-регрессия-после-фикса).
 
 Ключевые артефакты:
 
@@ -165,10 +176,26 @@ Error executing tool analyze_urban_question: question must be a non-empty string
 | `maps/services_density.png` | PNG |
 | `maps/services_centrality.png` | PNG |
 
+## Маршрутизация сервисов (регрессия, после фикса)
+
+«Верный вывод» из блокнота [`examples/test_visualization.ipynb`](../../examples/test_visualization.ipynb)
+(ячейка *Service Routing Regression*) и прямая проверка хелперов ядра:
+
+| Проверка | Вход | Проверяется | Исключено | Ожидание | Статус |
+|---|---|---|---|---|---|
+| `service_set` alias | `sports` | `pitch` | — | `pitch` | ✅ pass |
+| Нормализация сценария | `{sports: 10, convenience: 5}` | `{pitch: 10, convenience: 5}` | — | `sports→pitch` | ✅ pass |
+| Фильтр сценарной проверки | `service_set=sports` | `pitch` | `convenience` | проверяется только `pitch` | ✅ pass |
+
+Резолвинг имён (data-driven, без хардкода): `sports→pitch` (1.00), `спортивные площадки→pitch` (0.84),
+`школа→school`, `аптека→pharmacy`, `бассейн→swimming_pool`; неизвестное имя → `UnknownServiceSet`
+(честная ошибка вместо тихого `basic`).
+
 ## Найденные проблемы и исправления
 
 | Проблема | Где проявилась | Исправление |
 |---|---|---|
+| **`service_set='sports'` молча уходил в пресет `basic`** — для вопроса про спорт измерялись convenience/kindergarten/school, целевой `pitch` выпадал | Уровень 1 / анализ прогона | Вариант A: data-driven резолвер имён (`service_type.json`: `name`+`name_ru`+`keywords`, `data/service_aliases.json`) + нормализация сценария (`_normalize_addition_services`) + честная ошибка `UnknownServiceSet`; хардкод алиасов удалён |
 | `blocksnet_agent.Settings` падал на дополнительных `.env` полях `MAX_ITERATIONS` / `OUTPUT_DIR` | Уровень 1 | В `blocksnet_agent/config.py` добавлено `extra="ignore"` |
 | Сериализация не доставала список кварталов из текста вида `[2, 4, ...]` | Уровень 1 | В `blocksnet_mcp/serialize.py` добавлен парсинг bracket-list |
 | Сериализация не доставала `service strong 0.359→0.380, missing 790→783` | Уровень 1 | В `blocksnet_mcp/serialize.py` добавлен парсинг service before/after |

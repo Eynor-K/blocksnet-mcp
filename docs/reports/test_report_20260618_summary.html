@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>blocksnet-mcp · Сводка тестирования · 2026-06-18</title>
+<style>
+  :root{
+    --ink:#111111; --paper:#ffffff; --gray:#6b6b6b;
+    --line:#111111; --hair:#dcdcdc; --accent:#e2231a;
+    --skip:#9a9a9a; --maxw:1180px; --gap:32px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Helvetica Neue",Helvetica,Arial,"Inter",sans-serif;
+    font-size:16px;line-height:1.45;letter-spacing:-0.005em;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:64px 40px 120px}
+  a{color:var(--accent);text-decoration:none}
+
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 18px}
+  h1{font-size:64px;line-height:.98;font-weight:800;letter-spacing:-.03em;margin:0 0 24px}
+  h2{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin:0 0 24px;padding-bottom:10px;border-bottom:2px solid var(--line)}
+  h3{font-size:18px;font-weight:700;letter-spacing:-.01em;margin:0 0 10px}
+  p{margin:0 0 14px;max-width:64ch}
+  .lead{font-size:20px;line-height:1.4;max-width:60ch}
+  .muted{color:var(--gray)}
+  code{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:#f3f3f3;padding:1px 5px;border-radius:3px}
+
+  .mast{border-top:6px solid var(--ink);padding-top:22px;margin-bottom:64px}
+  .meta{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--hair);margin-top:28px}
+  .meta div{flex:1 1 180px;padding:14px 18px 14px 0;border-right:1px solid var(--hair)}
+  .meta div:last-child{border-right:0}
+  .meta dt{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:4px}
+  .meta dd{margin:0;font-size:15px;font-weight:600}
+
+  section{margin:0 0 76px}
+
+  .levels{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line)}
+  .lvl{padding:24px 22px 26px;border-right:1px solid var(--line)}
+  .lvl:last-child{border-right:0}
+  .lvl .n{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gray)}
+  .lvl .title{font-size:15px;font-weight:700;margin:8px 0 18px;min-height:42px}
+  .lvl .mark{font-size:34px;font-weight:800;line-height:1}
+  .lvl .res{font-size:13px;color:var(--gray);margin-top:8px}
+  .lvl .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:middle}
+  .lvl.skip .mark{color:var(--skip)}
+  .lvl.skip .dot{background:var(--skip)}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap);margin-top:8px}
+  .kpi{border-top:2px solid var(--ink);padding-top:16px}
+  .kpi .num{font-size:58px;font-weight:800;line-height:.9;letter-spacing:-.04em}
+  .kpi .num .u{font-size:22px;font-weight:700;color:var(--gray)}
+  .kpi .lab{font-size:13px;color:var(--gray);margin-top:12px}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+  @media(max-width:820px){
+    .levels,.kpis{grid-template-columns:repeat(2,1fr)}
+    .lvl:nth-child(2){border-right:0}
+    .cols{grid-template-columns:1fr}
+    h1{font-size:44px}
+  }
+
+  /* callout */
+  .callout{border-left:4px solid var(--accent);background:#fbf3f2;padding:18px 22px;margin:0 0 28px}
+  .callout strong{color:var(--ink)}
+  .callout .t{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
+
+  /* before/after bars */
+  .ba-row{padding:18px 0;border-bottom:1px solid var(--hair)}
+  .ba-row:last-child{border-bottom:0}
+  .ba-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .ba-head .svc{font-weight:700;font-size:16px}
+  .ba-head .delta{font-size:14px;font-weight:700}
+  .ba-head .delta.up{color:var(--accent)}
+  .ba-head .delta.flat{color:var(--gray)}
+  .bar-wrap{position:relative;height:34px;margin-bottom:6px}
+  .bar{position:absolute;top:0;left:0;height:100%}
+  .bar.before{background:#c9c9c9}
+  .bar.after{background:var(--ink)}
+  .bar-lab{display:flex;justify-content:space-between;font-size:12px;color:var(--gray)}
+  .legend{display:flex;gap:22px;font-size:12px;color:var(--gray);margin:0 0 18px}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .sw{width:14px;height:14px;display:inline-block}
+  .sw.b{background:#c9c9c9}.sw.a{background:var(--ink)}
+
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:11px 12px 11px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+  th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);font-weight:700}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+
+  .fix-row{display:grid;grid-template-columns:30px 1fr;gap:18px;padding:18px 0;border-bottom:1px solid var(--hair)}
+  .fix-row:last-child{border-bottom:0}
+  .fix-row .idx{font-size:22px;font-weight:800;color:var(--accent);line-height:1}
+  .fix-row.key{background:#fbf3f2;margin:0 -16px;padding:18px 16px;border-bottom:1px solid var(--hair)}
+  .fix-row .where{font-size:12px;color:var(--gray);letter-spacing:.04em;text-transform:uppercase;margin-top:6px}
+
+  footer{border-top:6px solid var(--ink);padding-top:22px;margin-top:40px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--gray)}
+
+  @media print{
+    body{font-size:12px}.wrap{padding:0}
+    section{margin-bottom:32px;break-inside:avoid}
+    .levels,.kpis{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="mast">
+    <p class="kicker">Сводка тестирования · QA · обновлено после фикса резолвинга</p>
+    <h1>blocksnet&#8209;mcp<br>Локальный MVP</h1>
+    <p class="lead">Локальный MCP-сервер городской аналитики: транспорт <code>stdio</code>, локальные
+       данные <code>data/</code>, внешний OpenAI-совместимый LLM. Уровни&nbsp;0–2 пройдены; добавлен
+       data-driven резолвер имён сервисов.</p>
+    <dl class="meta">
+      <div><dt>Дата</dt><dd>2026-06-18</dd></div>
+      <div><dt>Объём</dt><dd>Локальный MVP · P0</dd></div>
+      <div><dt>Транспорт</dt><dd>stdio</dd></div>
+      <div><dt>Python</dt><dd>3.10.11</dd></div>
+      <div><dt>LLM</dt><dd>openai/gpt-4o</dd></div>
+    </dl>
+  </header>
+
+  <!-- LEVELS -->
+  <section>
+    <h2>01 — Уровни проверки</h2>
+    <div class="levels">
+      <div class="lvl">
+        <div class="n">Уровень 0</div>
+        <div class="title">Unit / contract без LLM</div>
+        <div class="mark"><span class="dot"></span>PASS</div>
+        <div class="res">22 passed · 4 тест-файла</div>
+      </div>
+      <div class="lvl">
+        <div class="n">Уровень 1</div>
+        <div class="title">Прямой вызов analyze_urban_question</div>
+        <div class="mark"><span class="dot"></span>PASS</div>
+        <div class="res">JSON-контракт · run logs · артефакты</div>
+      </div>
+      <div class="lvl">
+        <div class="n">Уровень 2</div>
+        <div class="title">MCP stdio · smoke_client.py</div>
+        <div class="mark"><span class="dot"></span>PASS</div>
+        <div class="res">list_tools · invalid · valid</div>
+      </div>
+      <div class="lvl skip">
+        <div class="n">Уровень 3</div>
+        <div class="title">Реальный GUI-клиент</div>
+        <div class="mark"><span class="dot"></span>SKIP</div>
+        <div class="res">не запускалось · конфиг готов</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI -->
+  <section>
+    <h2>02 — Ключевые показатели</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="num">22</div><div class="lab">контрактных тестов пройдено (pytest, было 7)</div></div>
+      <div class="kpi"><div class="num">3<span class="u">/4</span></div><div class="lab">уровня проверки пройдено</div></div>
+      <div class="kpi"><div class="num">6</div><div class="lab">проблем найдено и исправлено</div></div>
+      <div class="kpi"><div class="num">1</div><div class="lab">MCP-инструмент зарегистрирован</div></div>
+    </div>
+  </section>
+
+  <!-- KEY FIX -->
+  <section>
+    <h2>03 — Ключевое исправление · резолвинг имён сервисов</h2>
+    <div class="callout">
+      <div class="t">Найдено в анализе прогона</div>
+      <p style="margin-bottom:10px">На вопрос «<strong>Где разместить новые спортивные площадки?</strong>»
+         оптимизатор измерял <strong>не те сервисы</strong>: <code>service_set='sports'</code> молча
+         уходил в пресет <code>basic</code> (convenience / kindergarten / school), а целевой
+         <code>pitch</code> выпадал из измеренного сценария.</p>
+      <p style="margin-bottom:0"><strong>Фикс (вариант A):</strong> имя сервиса определяется по данным
+         каталога (<code>service_type.json</code>: <code>name</code> + <code>name_ru</code> +
+         <code>keywords</code>) и <code>data/service_aliases.json</code>; при неудаче — честная ошибка
+         вместо <code>basic</code>. Хардкод алиасов из кода удалён. Теперь
+         <code>'sports' → pitch</code>.</p>
+    </div>
+    <div class="cols">
+      <div>
+        <h3>Резолвинг (после фикса)</h3>
+        <table>
+          <thead><tr><th>Запрос</th><th>Канон.</th><th class="num">score</th></tr></thead>
+          <tbody>
+            <tr><td><code>sports</code></td><td>pitch</td><td class="num">1.00</td></tr>
+            <tr><td>спортивные площадки</td><td>pitch</td><td class="num">0.84</td></tr>
+            <tr><td>спорт</td><td>pitch</td><td class="num">1.00</td></tr>
+            <tr><td>школа / school</td><td>school</td><td class="num">1.00</td></tr>
+            <tr><td>аптека</td><td>pharmacy</td><td class="num">1.00</td></tr>
+            <tr><td>бассейн</td><td>swimming_pool</td><td class="num">1.00</td></tr>
+            <tr><td><code>zzz_unknown</code></td><td>— (ошибка)</td><td class="num">&lt;0.72</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Регрессионные тесты</h3>
+        <p class="muted"><code>tests/test_service_resolution.py</code> — 12 кейсов:</p>
+        <ul class="muted" style="padding-left:18px;margin:0;max-width:58ch">
+          <li>распознавание известных сервисов (рус/англ, name_ru, алиасы);</li>
+          <li>регрессия: <code>service_set='sports'</code> → фокус на <code>pitch</code>, не <code>basic</code>;</li>
+          <li><code>compute_scenario_provision</code> фильтрует измерение по целевому сервису;</li>
+          <li>явный mismatch: если сценарий без целевого сервиса — отчёт это сообщает;</li>
+          <li>неизвестный <code>service_set</code> → <code>UnknownServiceSet</code> (честная ошибка).</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:28px;background:#f3f7f3;border-left-color:#2e7d32">
+      <div class="t" style="color:#2e7d32">Проверено · регрессия маршрутизации (блокнот + хелперы ядра)</div>
+      <p style="margin-bottom:0"><code>service_set='sports'</code> → <code>{pitch: 1.0}</code> ·
+         сценарий <code>{sports:10, convenience:5}</code> нормализуется в <code>{pitch, convenience}</code> ·
+         сценарная проверка считает только <code>pitch</code>, <code>convenience</code> исключён. Все ✅ pass.</p>
+    </div>
+  </section>
+
+  <!-- LEVEL 1 -->
+  <section>
+    <h2>04 — Уровень 1 · Измеренный эффект (после фикса)</h2>
+    <div class="callout" style="background:#f3f7f3;border-left-color:#2e7d32">
+      <div class="t" style="color:#2e7d32">После фикса · измеряется целевой pitch</div>
+      <p style="margin-bottom:0">Прогон <code>20260618-182405-08a76e</code>, <code>max_iterations=5</code>:
+         <code>propose_zone_development([409], 'sports')</code> →
+         <code>compute_scenario_provision({'409':{'pitch':10}})</code>. <code>service_set='sports'</code>
+         корректно сфокусировался на <code>pitch</code> — измерен <strong>именно pitch</strong>, а не
+         сторонние сервисы.</p>
+    </div>
+    <div class="cols">
+      <div>
+        <h3>Обеспеченность pitch (strong, доля 0–1)</h3>
+        <div class="legend">
+          <span><i class="sw b"></i>before</span>
+          <span><i class="sw a"></i>after</span>
+        </div>
+        <div class="ba-row">
+          <div class="ba-head"><div class="svc">pitch</div><div class="delta flat">±0.000</div></div>
+          <div class="bar-wrap"><div class="bar before" style="width:73.2%"></div></div>
+          <div class="bar-wrap"><div class="bar after" style="width:73.2%"></div></div>
+          <div class="bar-lab"><span>0.732</span><span>0.732</span></div>
+        </div>
+        <table style="margin-top:18px">
+          <thead><tr><th>pitch</th><th class="num">before</th><th class="num">after</th></tr></thead>
+          <tbody>
+            <tr><td>full (кварталов)</td><td class="num">97</td><td class="num">97</td></tr>
+            <tr><td>partial</td><td class="num">21</td><td class="num">21</td></tr>
+            <tr><td>missing</td><td class="num">785</td><td class="num">785</td></tr>
+          </tbody>
+        </table>
+        <p class="muted" style="margin-top:12px">Эффект плоский: +10 ед. ёмкости в одном квартале (409)
+           не двигают общегородской агрегат. Это содержательный итог, а не ошибка — ключевое, что
+           <strong>измеряется верный сервис</strong>.</p>
+      </div>
+      <div>
+        <h3>Параметры прогона</h3>
+        <table>
+          <tbody>
+            <tr><td>Run ID</td><td class="num">20260618-182405-08a76e</td></tr>
+            <tr><td>max_iterations</td><td class="num">5</td></tr>
+            <tr><td>Длительность</td><td class="num">86 с</td></tr>
+            <tr><td>Confidence</td><td class="num">0.45</td></tr>
+            <tr><td>Артефакты</td><td class="num">13</td></tr>
+          </tbody>
+        </table>
+        <h3 style="margin-top:24px">Кандидатный квартал</h3>
+        <p class="muted" style="font-variant-numeric:tabular-nums">block_id 409</p>
+        <div class="callout" style="margin-top:20px">
+          <div class="t">До фикса · баг</div>
+          <p style="margin-bottom:0">Прогон <code>20260618-140741-90e191</code> на тот же вопрос мерил
+             посторонние <code>convenience</code> (0.359→0.380), <code>kindergarten</code>,
+             <code>school</code>, а <code>pitch</code> выпадал — <code>'sports'</code> молча уходил в
+             пресет <code>basic</code>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEVEL 2 -->
+  <section>
+    <h2>05 — Уровень 2 · MCP stdio (smoke_client.py)</h2>
+    <div class="cols">
+      <div>
+        <table>
+          <thead><tr><th>Проверка</th><th>Результат</th></tr></thead>
+          <tbody>
+            <tr><td><code>list_tools</code></td><td>analyze_urban_question · required: question</td></tr>
+            <tr><td>Невалидный вызов</td><td>isError=true · «question must be a non-empty string»</td></tr>
+            <tr><td>Валидный вызов</td><td>isError=false · есть structuredContent</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3>Фактический прогон через MCP</h3>
+        <table>
+          <tbody>
+            <tr><td>Run ID</td><td class="num">20260618-151424-01760d</td></tr>
+            <tr><td>max_iterations</td><td class="num">1</td></tr>
+            <tr><td>Confidence</td><td class="num">0.45</td></tr>
+            <tr><td>Артефакты</td><td class="num">7</td></tr>
+          </tbody>
+        </table>
+        <p class="muted" style="margin-top:14px">Cold-start <code>list_tools()</code> ≈ 6 с (импорт
+           агента вынесен на startup). Контракт совпадает с уровнем 1.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FIXES -->
+  <section>
+    <h2>06 — Найдено и исправлено · 6</h2>
+    <div class="fix-row key">
+      <div class="idx">★</div>
+      <div>
+        <div><strong>Ключевое:</strong> <code>service_set='sports'</code> молча уходил в пресет
+           <code>basic</code> — для вопроса про спорт измерялись convenience/kindergarten/school,
+           а <code>pitch</code> выпадал.</div>
+        <div class="where">Ядро агента · вариант A: data-driven резолвер (service_type.json + service_aliases.json) + честная ошибка; хардкод алиасов удалён</div>
+      </div>
+    </div>
+    <div class="fix-row">
+      <div class="idx">2</div>
+      <div>
+        <div><code>blocksnet_agent.Settings</code> падал на доп. полях <code>MAX_ITERATIONS</code> / <code>OUTPUT_DIR</code> из <code>.env</code></div>
+        <div class="where">Уровень 1 · фикс: <code>extra="ignore"</code> в config.py</div>
+      </div>
+    </div>
+    <div class="fix-row">
+      <div class="idx">3</div>
+      <div>
+        <div>Сериализация не доставала список кварталов вида <code>[2, 4, …]</code> из текста</div>
+        <div class="where">Уровень 1 · фикс: парсинг bracket-list в serialize.py</div>
+      </div>
+    </div>
+    <div class="fix-row">
+      <div class="idx">4</div>
+      <div>
+        <div>Не извлекался формат <code>service strong 0.359→0.380, missing 790→783</code></div>
+        <div class="where">Уровень 1 · фикс: парсинг service before/after в serialize.py</div>
+      </div>
+    </div>
+    <div class="fix-row">
+      <div class="idx">5</div>
+      <div>
+        <div>MCP valid call зависал на lazy-import агента внутри tool-call</div>
+        <div class="where">Уровень 2 · фикс: импорт BlocksNetAgent перенесён на startup</div>
+      </div>
+    </div>
+    <div class="fix-row">
+      <div class="idx">6</div>
+      <div>
+        <div>Ручной MCP smoke не воспроизводился без Inspector</div>
+        <div class="where">Уровень 2 · фикс: добавлен <code>scripts/smoke_client.py</code></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIMITS + CONCLUSION -->
+  <section>
+    <h2>07 — Ограничения и вывод</h2>
+    <div class="cols">
+      <div>
+        <h3>Ограничения</h3>
+        <ul class="muted" style="padding-left:18px;margin:0;max-width:60ch">
+          <li>Уровень 3 (GUI-клиент, Claude Desktop) не запускался.</li>
+          <li>Measured-эффект по <code>pitch</code> плоский: проверен один квартал (409); для заметного сдвига нужен сценарий по нескольким кварталам.</li>
+          <li><code>max_iterations=1</code> годится для smoke, но даёт неполные выводы и <code>inconclusive</code>.</li>
+          <li><code>outputs/</code> gitignored — run logs и карты локальны, не версионируются.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Вывод</h3>
+        <p>Локальный <code>blocksnet-mcp</code> готов как <strong>stdio MCP-сервер</strong>. Контрактная
+           логика, прямой вызов агента и MCP-транспорт работают; резолвинг имён сервисов исправлен и
+           покрыт регрессионными тестами (<code>22 passed</code>).</p>
+        <p>Для рабочего результата — <code>max_iterations ≥ 5</code> и таймаут клиента в несколько минут.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>blocksnet-mcp · локальный MVP · сводка тестирования (инфографика)</span>
+    <span>Источник: docs/reports/test_report_20260618.md · план: docs/plans/test_plan.md (gitignored)</span>
+  </footer>
+
+</div>
+</body>
+</html>

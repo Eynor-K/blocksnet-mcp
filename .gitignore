@@ -27,8 +27,6 @@ pip-wheel-metadata/
 # Runtime outputs and generated reports
 outputs/
 *.log
-docs/reports/*.html
-!docs/reports/test_report_20260618.html
 
 # Local planning notes and future-stage references
 docs/plans/
