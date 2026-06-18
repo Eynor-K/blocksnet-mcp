@@ -1,0 +1,53 @@
+# Local secrets and environment
+.env
+.env.*
+!.env.example
+.venv/
+.python310/
+.python-version
+
+# Python caches and build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# Jupyter local state
+.ipynb_checkpoints/
+
+# Runtime outputs and generated reports
+outputs/
+*.log
+docs/reports/*.html
+!docs/reports/test_report_20260618.html
+
+# Local planning notes and future-stage references
+docs/plans/
+docs/mas_integration_reference.md
+docs/mas_registration.md
+docs/mcp_repository_plan.md
+
+# Large/local geodata; keep only small repository fixtures below
+data/
+
+!data/README.md
+!data/service_type.json
+!data/service_aliases.json
+!data/archetypes.csv
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+*.swp
